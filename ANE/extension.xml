@@ -1,0 +1,21 @@
+<extension xmlns="http://ns.adobe.com/air/extension/3.9">
+  <id>co.serendipi.spike.ane</id>
+  <versionNumber>0.0.1</versionNumber>
+  <platforms>
+    <platform name="iPhone-ARM">
+      <applicationDeployment>
+        <nativeLibrary>libaneIOS.a</nativeLibrary>
+        <initializer>ANEExtensionInitializer</initializer>
+      </applicationDeployment>
+    </platform>
+    <platform name="Android-ARM">
+      <applicationDeployment>
+        <nativeLibrary>anePerformanceSpike-Android.jar</nativeLibrary>
+        <initializer>co.serendipi.spike.ane.BasicANE</initializer>
+      </applicationDeployment>
+    </platform>
+    <platform name="default">
+      <applicationDeployment />
+    </platform>
+  </platforms>
+</extension>

@@ -1,0 +1,15 @@
+
+apply plugin : 'base'
+
+def iphoneArmLibFile = file('bin-debug/iPhone-ARM/libaneIOS.a')
+
+project.ext.anePlatform = 'iPhone-ARM'
+project.ext.platformOptions = file('ios-platformoptions.xml')
+
+configurations {
+	archives
+}
+
+artifacts {
+    archives iphoneArmLibFile
+}

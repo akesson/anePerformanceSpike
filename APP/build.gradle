@@ -1,0 +1,120 @@
+apply plugin: 'base'
+
+
+configurations {
+	compile
+	archives
+}
+
+dependencies {
+	compile project(path: ':ANE', configuration: 'archives')
+}
+
+
+if (!ext.properties.containsKey('platform')) ext.platform = 'android'
+
+ext.as3MainDir = file("src/main/actionscript")
+ext.swfFile = file("${buildDir}/${project.name}.swf")
+ext.apkFile = file("${buildDir}/${project.name}.apk")
+ext.ipaFile = file("${buildDir}/${project.name}.ipa")
+ext.mainClass = "${as3MainDir}/${project.name}.as"
+ext.applicationDescriptor = file("${as3MainDir}/${project.name}-app.xml")
+ext.applicationId = getApplicationIdFromDescriptor(applicationDescriptor)
+
+
+// TODO : keep going factorize swc swf , package etc!!!
+
+task swf(dependsOn: ':ANE:ane') {
+	inputs.dir(as3MainDir)
+	outputs.file swfFile
+	doLast {
+		antSwf(as3MainDir, configurations['compile'].files, mainClass, swfFile)
+	}		
+}
+
+
+task packageMobile(dependsOn: 'swf') {
+	def extensionDirs = configurations['compile'].files.findAll { it.name.endsWith('.ane') }*.parent
+	if (platform == 'android') {
+		outputs.file apkFile
+		doLast {
+			antAdtApk(
+				"${androidP12KeyStore}",
+				"${androidStorePass}",
+				applicationDescriptor, swfFile, extensionDirs, apkFile)
+		}
+	} else if (platform == 'ios') {
+		outputs.file ipaFile
+		doLast {
+			antAdtIpa(
+				"${iosProvisioningProfile}",
+				"${iosP12KeyStore}",
+				"${iosStorePass}",
+				applicationDescriptor, swfFile, extensionDirs, apkFile)
+		}
+	} else {
+		// TODO throw
+	}
+}
+
+
+
+task uninstallMobile() {
+	doLast {
+		ant.java(jar: "${airasc2SdkDir}/lib/adt.jar",
+		fork: true,
+		dir: '.') {
+			arg(value: "-uninstallApp")
+			arg(value: "-platform")
+			arg(value: "${platform}")
+			arg(value: "-appid")
+			arg(value: "${applicationId}")
+		}
+	}
+}
+
+
+task installMobile(dependsOn: 'packageMobile') {
+	doLast {
+		ant.java(jar: "${airasc2SdkDir}/lib/adt.jar",
+		fork: true,
+		dir: '.') {
+			arg(value: "-installApp")
+			arg(value: "-platform")
+			arg(value: "${platform}")
+			arg(value: "-package")
+			arg(value: "${apkFile}")
+		}
+	}
+}
+
+installMobile.mustRunAfter(uninstallMobile)
+
+
+task launchMobile(dependsOn: ['uninstallMobile', 'installMobile'] ) {
+	doLast {
+		ant.java(jar: "${airasc2SdkDir}/lib/adt.jar",
+		fork: true,
+		dir: '.') {
+			arg(value: "-launchApp")
+			arg(value: "-platform")
+			arg(value: "${platform}")
+			arg(value: "-appid")
+			arg(value: "${applicationId}")
+		}
+	}
+}
+
+
+def getApplicationIdFromDescriptor(File applicationDescriptor) {
+        def builder = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        def doc = builder.parse(applicationDescriptor.newInputStream())
+        def xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath()
+        def appId = xpath.evaluate("/application/id", doc)
+        return appId;
+}
+
+
+artifacts {
+    archives swfFile
+}

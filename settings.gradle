@@ -1,0 +1,7 @@
+
+include 'ANE', 'anePerformanceSpike-API', 'anePerformanceSpike-Android', 'anePerformanceSpike-default', 'anePerformanceSpike-iOS', 'APP'
+
+project(':anePerformanceSpike-API').projectDir = new File(settingsDir, 'ANE/anePerformanceSpike-API')
+project(':anePerformanceSpike-Android').projectDir = new File(settingsDir, 'ANE/anePerformanceSpike-Android')
+project(':anePerformanceSpike-iOS').projectDir = new File(settingsDir, 'ANE/anePerformanceSpike-iOS')
+project(':anePerformanceSpike-default').projectDir = new File(settingsDir, 'ANE/anePerformanceSpike-default')

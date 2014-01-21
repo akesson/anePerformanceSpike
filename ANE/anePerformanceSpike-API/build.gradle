@@ -1,0 +1,23 @@
+apply plugin: 'base'
+
+
+
+task swc() {
+	ext.swcFile = file("${buildDir}/${project.name}.swc")
+	ext.as3MainDir = file("src/main/actionscript")
+	inputs.dir("${as3MainDir}")
+	outputs.file swcFile
+	doLast {
+		antSwc(as3MainDir, [], swcFile)
+	}		
+}
+
+
+
+configurations {
+	archives
+}
+
+artifacts {
+    archives swc.swcFile
+}

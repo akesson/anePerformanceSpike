@@ -1,0 +1,159 @@
+propertyMustExist 'androidSdkDir'
+propertyMustExist 'airasc2SdkDir'
+propertyMustExist 'androidP12KeyStore'
+propertyMustExist 'androidStorePass'
+
+
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '1.10'
+}
+
+def propertyMustExist(name) {
+	if (!hasProperty(name)) {
+		ant.fail("Property ${name} must be defined!")
+	}
+}
+
+def antSwc(as3SourceDir, swcOrAneDependencies, outSwc) {
+	antExecJar('.', "${airasc2SdkDir}/lib/compc-cli.jar") {
+		jvmarg(value: "-Dflexlib=\"${airasc2SdkDir}/frameworks\"")
+		arg(value: "-source-path+=${as3SourceDir}")
+		arg(value: "-include-sources+=${as3SourceDir}")
+		swcOrAneDependencies.each { arg(value: "-library-path=" + it) }
+		arg(value: "+configname=air")
+		arg(value: "-inline")
+		arg(value: "-warnings=true")
+		arg(value: "-strict=true")
+		arg(value: "-swf-version=22")
+		arg(value: "-output=${outSwc}")
+	}
+}
+
+
+def antSwf(as3SourceDir, swcOrAneDependencies, mainClass, outSwf) {
+	antExecJar('.', "${airasc2SdkDir}/lib/mxmlc-cli.jar") {
+		jvmarg(value: "-Dflexlib=\"${airasc2SdkDir}/frameworks\"")
+		arg(value: "+configname=airmobile")
+		arg(value: "-source-path+=${as3SourceDir}")
+		swcOrAneDependencies.each { arg(value: "-library-path=" + it) }
+		arg(value: "-inline")
+		arg(value: "-warnings=true")
+		arg(value: "-strict=true")
+		arg(value: "-swf-version=22")
+		arg(value: "-output=${outSwf}")
+		arg(value: "$mainClass")
+	}
+}
+
+
+
+
+def antAdtAne(extensionXml, apiSwc, platforms, outAne) {
+	antExecJar('.', "${airasc2SdkDir}/lib/adt.jar") {
+		arg(value: '-package')
+		arg(value: '-target')
+		arg(value: 'ane')
+		arg(value: "${outAne}")
+		arg(value: "${extensionXml}")
+		arg(value: "-swc")
+		arg(value: "${apiSwc}")
+		for (platform in platforms) {
+			arg(value: '-platform')
+			arg(value: "${platform.name}")
+			if (platform.containsKey('options')) {
+				arg(value: '-platformoptions')
+				arg(value: "${platform.options}")
+			}
+			arg(value: '-C')
+			arg(value: "${platform.dir}")
+			arg(value: '.')
+		}
+	}
+
+}
+
+
+def antAdtApk(p12KeyStore, storePass, applicationDescriptor, swf, extensionDirs, outApk) {
+	antExecJar('.', "${airasc2SdkDir}/lib/adt.jar") {
+		arg(value: "-package")
+		arg(value: "-target")
+		arg(value: "apk-captive-runtime")
+		arg(value: "-storetype")
+		arg(value: "pkcs12")
+		arg(value: "-keystore")
+		arg(value: "${p12KeyStore}")
+		arg(value: "-storepass")
+		arg(value: "${storePass}")
+		arg(value: "${outApk}")
+		arg(value: "${applicationDescriptor}")
+		arg(value: "-C")
+		arg(value: "${swf.parent}")
+		arg(value: "${swf.name}")
+		extensionDirs.each() {
+			arg(value: "-extdir")
+			arg(value: it)
+		}
+	}
+}
+
+
+def antAdtIpa(provisioningProfile, p12KeyStore, storePass, applicationDescriptor, swf, extensionDirs, outIpa) {
+	antExecJar('.', "${airasc2SdkDir}/lib/adt.jar") {
+		arg(value: "-package")
+		arg(value: "-target")
+		arg(value: "ipa-ad-hoc")
+		arg(value: "-storetype")
+		arg(value: "pkcs12")
+		arg(value: "-provisioning-profile")
+		arg(value: "${provisioningProfile}")
+		arg(value: "-keystore")
+		arg(value: "${p12KeyStore}")
+		arg(value: "-storepass")
+		arg(value: "${storePass}")
+		arg(value: "${outIpa}")
+		arg(value: "${applicationDescriptor}")
+		arg(value: "-C")
+		arg(value: "${swf.parent}")
+		arg(value: "${swf.name}")
+		extensionDirs.each() {
+			arg(value: "-extdir")
+			arg(value: it)
+		}
+	}
+}
+
+
+import org.apache.tools.ant.PropertyHelper
+
+def antExecJar(dir, jar, Closure closure) {
+	def antResultProperty = 'AntResult'
+	def antOutputProperty = 'AntOutput'
+	def tmpAnt = new groovy.util.AntBuilder()
+	closure.delegate = ant
+	ant.java(jar: "$jar",
+			resultproperty: antResultProperty,
+			outputproperty: antOutputProperty,
+			fork: true,
+			dir: "$dir") {
+		closure()
+	}
+	def antOutput = "${ant.properties[antOutputProperty]}"
+	def antResult = "${ant.properties[antResultProperty]}"
+	// dirty hack to get rid of ant properties (otherwise they are not overwritten between ant runs)
+	PropertyHelper.getPropertyHelper(ant.project).@properties.remove(antOutputProperty)
+	PropertyHelper.getPropertyHelper(ant.project).@properties.remove(antResultProperty)
+	println "[ant] ${antOutput}"
+	if (antResult != '0') {
+		ant.fail("Task $name failed with error code ${antResult}")
+	}
+
+
+
+}
+
+
+
+
+
+

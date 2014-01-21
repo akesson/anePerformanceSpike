@@ -1,0 +1,27 @@
+apply plugin: 'base'
+
+project.ext.anePlatform = 'default'
+
+configurations {
+	compile
+	archives
+}
+
+dependencies {
+	compile project(path: ':anePerformanceSpike-API', configuration: 'archives')
+}
+
+
+task swc() {
+	ext.swcFile = file("${buildDir}/${project.name}.swc")
+	ext.as3MainDir = file("src/main/actionscript")
+	inputs.dir("${as3MainDir}")
+	outputs.file swcFile
+	doLast {
+		antSwc(as3MainDir, [], swcFile)
+	}		
+}
+
+artifacts {
+    archives swc.swcFile
+}

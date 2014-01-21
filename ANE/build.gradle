@@ -1,0 +1,72 @@
+apply plugin: 'base'
+
+
+configurations {
+	aneAPI
+	anePlatform
+}
+
+dependencies {
+	aneAPI project(path: ':anePerformanceSpike-API', configuration: 'archives')	
+	anePlatform project(path: ':anePerformanceSpike-iOS', configuration: 'archives') 
+	anePlatform project(path: ':anePerformanceSpike-Android', configuration: 'archives')
+	anePlatform project(path: ':anePerformanceSpike-default', configuration: 'archives')	
+}
+
+
+
+task ane(type: Copy, dependsOn: [':anePerformanceSpike-API:swc', ':anePerformanceSpike-default:swc']) {
+	def apiSwcFile = configurations.aneAPI.getSingleFile()
+	def platforms = []
+	from (configurations.aneAPI) {
+		into "ane"
+	}
+	for (dep in configurations['anePlatform'].dependencies) {
+		def platform = [:]
+		platform.name = dep.getDependencyProject().anePlatform
+		platform.dir = file("$buildDir/ane/${platform.name}")
+		if (dep.getDependencyProject().hasProperty('platformOptions')) {
+			platform.options = dep.getDependencyProject().platformOptions
+		}
+
+		if (platform.name == 'default') {
+			def defaultSwcSpec = zipTree(dep.getDependencyProject().configurations.archives.artifacts.getFiles().getSingleFile())
+			from (defaultSwcSpec) {
+				include 'library.swf'
+				into "ane/${platform.name}"
+			}
+		} else {
+			from (zipTree(apiSwcFile)) {
+				include 'library.swf'
+				into "ane/${platform.name}"
+			}
+			from (dep.getDependencyProject().configurations.archives.artifacts.getFiles()) {
+				into "ane/${platform.name}"
+				include "*.jar"
+				include "*.a"
+			}
+		}
+		platforms.add(platform)
+	}
+	from ('.') {
+		include 'extension.xml'
+		into "ane"
+	}
+	into "$buildDir"
+
+	ext.aneFile = file("$buildDir/anePerformance.ane")
+	outputs.file aneFile
+	outputs.upToDateWhen { false }
+	doLast {
+		antAdtAne(file("$buildDir/ane/extension.xml"),
+			file("$buildDir/ane/${apiSwcFile.name}"),
+			platforms, 
+			file("${aneFile}"))
+	}		
+}
+
+
+
+artifacts {
+	archives ane.aneFile
+}

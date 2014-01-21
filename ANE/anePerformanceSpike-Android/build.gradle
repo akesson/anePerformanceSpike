@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+
+project.ext.anePlatform = 'Android-ARM'
+project.ext.androidPlatform = 19
+
+dependencies {
+    compile files("${airasc2SdkDir}\\lib\\android\\FlashRuntimeExtensions.jar")
+    compile files("${androidSdkDir}\\platforms\\android-${androidPlatform}\\android.jar")    
+}
+
+configurations {
+	archives 
+}
+
