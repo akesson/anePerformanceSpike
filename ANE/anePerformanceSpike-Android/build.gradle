@@ -5,9 +5,11 @@ apply plugin: 'idea'
 project.ext.anePlatform = 'Android-ARM'
 project.ext.androidPlatform = 19
 
+println "===== ${airasc2SdkDir}/lib/android/FlashRuntimeExtensions.jar"
+println "----- ${androidSdkDir}/platforms/android-${androidPlatform}/android.jar"
 dependencies {
-    compile files("${airasc2SdkDir}\\lib\\android\\FlashRuntimeExtensions.jar")
-    compile files("${androidSdkDir}\\platforms\\android-${androidPlatform}\\android.jar")    
+    compile files("${airasc2SdkDir}/lib/android/FlashRuntimeExtensions.jar")
+    compile files("${androidSdkDir}/platforms/android-${androidPlatform}/android.jar")    
 }
 
 configurations {
