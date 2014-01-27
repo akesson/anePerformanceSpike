@@ -39,3 +39,4 @@ ant.config.xml
 
 # gradle stuff
 .gradle
+gradle.properties

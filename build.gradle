@@ -17,7 +17,7 @@ def propertyMustExist(name) {
 
 def antSwc(as3SourceDir, swcOrAneDependencies, outSwc) {
 	antExecJar('.', "${airasc2SdkDir}/lib/compc-cli.jar") {
-		jvmarg(value: "-Dflexlib=\"${airasc2SdkDir}/frameworks\"")
+		jvmarg(value: "-Dflexlib=${airasc2SdkDir}/frameworks")
 		arg(value: "-source-path+=${as3SourceDir}")
 		arg(value: "-include-sources+=${as3SourceDir}")
 		swcOrAneDependencies.each { arg(value: "-library-path=" + it) }
@@ -33,7 +33,7 @@ def antSwc(as3SourceDir, swcOrAneDependencies, outSwc) {
 
 def antSwf(as3SourceDir, swcOrAneDependencies, mainClass, outSwf) {
 	antExecJar('.', "${airasc2SdkDir}/lib/mxmlc-cli.jar") {
-		jvmarg(value: "-Dflexlib=\"${airasc2SdkDir}/frameworks\"")
+		jvmarg(value: "-Dflexlib=${airasc2SdkDir}/frameworks")
 		arg(value: "+configname=airmobile")
 		arg(value: "-source-path+=${as3SourceDir}")
 		swcOrAneDependencies.each { arg(value: "-library-path=" + it) }
