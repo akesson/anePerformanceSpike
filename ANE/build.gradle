@@ -15,7 +15,10 @@ dependencies {
 
 
 
-task ane(type: Copy, dependsOn: [':anePerformanceSpike-API:swc', ':anePerformanceSpike-default:swc']) {
+task ane(type: Copy, dependsOn: [':anePerformanceSpike-API:swc', 
+				 ':anePerformanceSpike-default:swc',
+				 ':anePerformanceSpike-Android:jar',
+				 ':anePerformanceSpike-iOS:iosLib']) {
 	def apiSwcFile = configurations.aneAPI.getSingleFile()
 	def platforms = []
 	from (configurations.aneAPI) {

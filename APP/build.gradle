@@ -22,8 +22,6 @@ ext.applicationDescriptor = file("${as3MainDir}/${project.name}-app.xml")
 ext.applicationId = getApplicationIdFromDescriptor(applicationDescriptor)
 
 
-// TODO : keep going factorize swc swf , package etc!!!
-
 task swf(dependsOn: ':ANE:ane') {
 	inputs.dir(as3MainDir)
 	outputs.file swfFile
